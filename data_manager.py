@@ -102,6 +102,7 @@ class DataManager:
 
         flight_data = self.read_sheet()
         pprint(flight_data)
+
     def small_test(self):
         headers = {
             'Authorization': self.sheety_bearer,

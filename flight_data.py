@@ -1,11 +1,4 @@
-from pprint import pprint
-import requests
 from flight_search import FlightSearch
-
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
 class FlightData:
@@ -28,7 +21,7 @@ class FlightData:
         )
 
         cheapest_price = cheapest["price"]["grandTotal"]
-        cheapest_origin = cheapest ["itineraries"][0]["segments"][0]["departure"]["iataCode"]
+        cheapest_origin = cheapest["itineraries"][0]["segments"][0]["departure"]["iataCode"]
         cheapest_dest = cheapest["itineraries"][0]["segments"][-1]["arrival"]["iataCode"]
         cheapest_type = cheapest["travelerPricings"][0]["fareDetailsBySegment"][0]["cabin"]
         print(f"For {cheapest_price}, there is a flight from {cheapest_origin} to {cheapest_dest}. {cheapest_type}.")
