@@ -19,6 +19,7 @@ class DataManager:
 
         self.flight_search = FlightSearch()
         self.flight_data = FlightData()
+        self.sheet_info = self.read_sheet()
 
     def read_sheet(self):
         headers = {
@@ -29,12 +30,11 @@ class DataManager:
         response.raise_for_status()  # Raises an exception for HTTP errors
 
         data = response.json()
+        print(data['prices'])
         return data['prices']
 
     def update_iata_codes(self):
-        flight_data = self.read_sheet()
-        city_name = [item['city'] for item in flight_data]
-
+        city_name = [item['city'] for item in self.sheet_info]
 
         iata_codes = []
         for i in city_name:
@@ -68,8 +68,7 @@ class DataManager:
         pprint(flight_data)
 
     def update_prices(self):
-        flight_data = self.read_sheet()
-        iata_codes = [item['iataCode'] for item in flight_data]
+        iata_codes = [item['iataCode'] for item in self.sheet_info]
         cheapest_found = []
 
         for i in iata_codes:
@@ -100,8 +99,33 @@ class DataManager:
 
             row += 1
 
-        flight_data = self.read_sheet()
-        pprint(flight_data)
+        updated_data = self.read_sheet()
+        pprint(updated_data)
+
+    def check_for_deals(self):
+        iata_codes = [item['iataCode'] for item in self.sheet_info]
+        cheapest_found = []
+
+        for i in iata_codes:
+            search_result = self.flight_search.find_sales("EZE", i, '2026-01-10', 1)
+            lowest_price = self.flight_data.formatCheapFlight(search_result)
+            cheapest_found.append(lowest_price)
+        print(cheapest_found)
+
+        for i, new_price in enumerate(cheapest_found):
+            stored_price = self.sheet_info[i]['lowestPrice']
+
+            try:
+                new_price = float(new_price)
+                stored_price = float(stored_price)
+            except (TypeError, ValueError):
+                continue
+
+            if new_price < stored_price:
+                print(
+                    f"Sale found for {self.sheet_info[i]['city']}: "
+                    f"{new_price} < {stored_price}"
+                )
 
     def small_test(self):
         headers = {
@@ -119,7 +143,5 @@ class DataManager:
         response = requests.put(new_url, json=json, headers=headers)
         response.raise_for_status()  # Raises an exception for HTTP errors
 
-
-datas = DataManager()
-datas.update_prices()
-
+# datas = DataManager()
+# datas.check_for_deals()

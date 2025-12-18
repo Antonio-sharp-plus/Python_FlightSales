@@ -28,6 +28,6 @@ class FlightData:
         return cheapest["price"]["grandTotal"]
 
 
-instanttt = FlightData()
-searcher = FlightSearch()
-instanttt.formatCheapFlight(searcher.find_sales('EZE', 'IST', '2026-01-11', 1))
+# instanttt = FlightData()
+# searcher = FlightSearch()
+# instanttt.formatCheapFlight(searcher.find_sales('EZE', 'IST', '2026-01-11', 1))

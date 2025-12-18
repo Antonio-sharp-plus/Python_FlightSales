@@ -75,5 +75,5 @@ class FlightSearch:
         return data
 
 
-flighter = FlightSearch()
-flighter.find_sales('EZE', 'PAR', '2026-01-11', 1)
+# flighter = FlightSearch()
+# flighter.find_sales('EZE', 'PAR', '2026-01-11', 1)
