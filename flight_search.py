@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import requests
+from pprint import pprint
 
 load_dotenv()
 
@@ -75,5 +76,5 @@ class FlightSearch:
         return data
 
 
-# flighter = FlightSearch()
-# flighter.find_sales('EZE', 'PAR', '2026-01-11', 1)
+flighter = FlightSearch()
+flighter.find_sales('EZE', 'PAR', '2026-01-11', 1)

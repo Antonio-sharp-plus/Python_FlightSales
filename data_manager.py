@@ -1,8 +1,10 @@
 from pprint import pprint
 import requests
+from datetime import datetime
 
 from flight_search import FlightSearch
 from flight_data import FlightData
+from notification_manager import NotificationManager
 
 import os
 from dotenv import load_dotenv
@@ -19,6 +21,8 @@ class DataManager:
 
         self.flight_search = FlightSearch()
         self.flight_data = FlightData()
+        self.twilio_helper = NotificationManager()
+
         self.sheet_info = self.read_sheet()
 
     def read_sheet(self):
@@ -30,7 +34,8 @@ class DataManager:
         response.raise_for_status()  # Raises an exception for HTTP errors
 
         data = response.json()
-        print(data['prices'])
+        for i, value in enumerate(data['prices']):
+            print(f"i: {i} - value: {value}")
         return data['prices']
 
     def update_iata_codes(self):
@@ -104,15 +109,10 @@ class DataManager:
 
     def check_for_deals(self):
         iata_codes = [item['iataCode'] for item in self.sheet_info]
-        cheapest_found = []
 
-        for i in iata_codes:
-            search_result = self.flight_search.find_sales("EZE", i, '2026-01-10', 1)
-            lowest_price = self.flight_data.formatCheapFlight(search_result)
-            cheapest_found.append(lowest_price)
-        print(cheapest_found)
-
-        for i, new_price in enumerate(cheapest_found):
+        for i, value in enumerate(self.sheet_info):
+            search_result = self.flight_search.find_sales("EZE", value['iataCode'], '2026-01-10', 1)
+            new_price = self.flight_data.formatCheapFlight(search_result)
             stored_price = self.sheet_info[i]['lowestPrice']
 
             try:
@@ -122,10 +122,23 @@ class DataManager:
                 continue
 
             if new_price < stored_price:
-                print(
-                    f"Sale found for {self.sheet_info[i]['city']}: "
-                    f"{new_price} < {stored_price}"
+                segments = search_result["data"][0]["itineraries"][0]["segments"]
+
+                def fmt(ts):
+                    return datetime.fromisoformat(ts).strftime("%d %b %Y %H:%M")
+
+                message = (
+                    f"Sale found for {self.sheet_info[i]['city']}.\n"
+                    f"Price found: {new_price}\n"
+                    f"Price in sheets file: {stored_price}\n"
+                    f"From: EZE\n"
+                    f"To: {value['iataCode']}\n"
+                    f"Departure: {fmt(segments[0]['departure']['at'])}\n"
+                    f"Arrival: {fmt(segments[-1]['arrival']['at'])}"
                 )
+
+                print(message)
+                self.twilio_helper.send_message(message)
 
     def small_test(self):
         headers = {
